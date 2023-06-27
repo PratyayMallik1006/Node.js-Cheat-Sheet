@@ -446,3 +446,210 @@ app.delete('/api/courses/:id', (req, res) => {
 });
 ```
 
+# Express Advanced Topics
+## MiddleWare
+- A MiddleWare function is a function that takes a request object and either terminates the request/response cycle or passes control to another middleware function
+- In express, every router handle function is middleware function
+**Built-in express middleware functions:**
+1.  ### express.json() 
+- Returns a middleware function, reads request, if there is json object in body, parse the body into a json object
+- sets **req.body** property
+
+**Request Processing Pipeline**
+ - Request > Middleware> ... > Middleware > response
+ - Request > json() > route() > response
+
+## Creating a Custom MiddleWare
+```js
+app.use((req, res, next) => {
+	console.log('Logging...');
+	next(); 
+//pass to next middleware function if we dont do this req will end up hanging
+});
+```
+Custom middleware applied to a route
+```js
+app.use('/api/admin',(req, res, next) => {
+	console.log('Logging...');
+	next(); 
+//pass to next middleware function if we dont do this req will end up hanging
+});
+```
+## Built-in Express Middleware Functions
+1.  ### express.json() 
+
+- Returns a middleware function, reads request, if there is json object in body, parse the body into a json object
+- sets **req.body** property
+2. ***express.urlencoded({ extended: true })***
+- payload for form url encoded 
+- key=value&key=value
+3. ***app.use(express.static('public'))***
+- we can serve static content using this file
+
+## Third party middleware
+- Know more: https://expressjs.com/en/resources/middleware.html
+
+### Helmet 
+- Use for secure http by setting header
+```
+npm i helmet
+```
+- index.js
+```js
+const helmet = require('helmet');
+app.use(helmet())
+```
+
+### Morgan
+- logging HTTP request
+```
+npm i morgan
+```
+- Index.js
+```js
+const morgan = require('morgan');
+app.use(morgan('tiny'));
+```
+- We can configure it to log to a file
+
+## Environments
+- To get environment name (if not set undefined)
+```js
+console.log(process.env.NODE_env)
+
+app.get('env') // if env not set then return development by default
+if (app.get('env') === 'development') {
+    app.use(morgan('tiny'));
+    console.log('Morgan enabled...');
+}
+```
+- CMD
+```
+set NODE_ENV=production
+```
+
+## Configuration
+- RC package
+```
+npm i rc
+```
+- Another package: npm config 
+- CMD
+```
+npm i config
+```
+- Create config folder with json files
+- Create json contains different config files
+- default.json
+```json
+    {
+	    "name":"Node Project",
+	    "mail":{
+		    "host":"toto@mercedes.com",
+	    }
+    }
+```
+- index.js
+```js
+const config = require('config')
+
+    console.log(`Application Name: ${config.get('name')}`);
+    console.log(`Mail Server : ${config.get('mail.host')}`);
+    console.log(`Mail Password : ${config.get('mail.password')}`);
+```
+
+## Debugging
+
+- Node debug package
+- Use env variable to enable or disable debug
+- Avoid using console.log
+- CMD
+```
+npm i debug
+```
+- index.js
+```js
+const startupDebugger = require('debug')('app:startup');
+const dbDebugger = require('debug')('app:db');
+
+dbDebugger("Database connected");
+```
+- CMD
+```
+set DEBUG=app:startup // single namespace
+set DEBUG=app:startup,app:db // multiple namespace
+set DEBUG=app:* // all debugging namespace
+
+DEBUG=app:startup nodemon index.js // at runtime
+```
+## Templating Engine
+- Sending HTML markup to client
+- Various available: Pug, Mustache, **EJS**
+
+### Pug
+- CMD
+```
+npm i pug
+```
+- index.js
+```js
+app.set('view engine', 'pug'); //no need to require
+app.set('views', './views'); 
+// all templates insider folder view(optional setting)
+
+//create index.pug
+app.get('/', (req, res) => {
+    res.render('index.pug', { title: 'My Express App', message: 'Hello World'});
+});
+```
+- index.pug
+```json
+html
+	body
+		h1 = title
+		p = message
+```
+## Structuring Express Applications
+1. routes/courses.js
+```js
+const express = require('express');
+const router = epress.Router();
+
+const courses =[... ]
+
+router.get('/',(req,res) => {
+	...
+});
+
+router.get('/id',(req,res) => {
+	...
+});
+
+router.post('/',(req,res) => {
+	...
+});
+
+router.put('/:id',(req,res) => {
+	...
+});
+
+router.delete('/:id',(req,res) => {
+	...
+});
+
+module.export = router;
+```
+2. index.js
+```js
+const express = require('express')
+const joi = require('Joi')
+const courses = require('./routes/courses')
+const instructors = require('./routes/instructors')
+
+const app = express();
+app.use(express.json());
+app.use('/api/courses', courses);
+app.use('/api/instructors', instructors);
+
+app.listen(3000, () => console.log("3000"))
+```
