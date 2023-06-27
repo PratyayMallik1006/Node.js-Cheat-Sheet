@@ -236,3 +236,213 @@ npm un <packageName>
 npm i -g <packageName>
 ```
 
+# RESTful API
+- Structure for HTTP Request
+- API are middleware between client and server
+- Alternatives: SOAP, GraphQl, Falcor
+- REST is architecture style (conventions) for API
+- Defines
+  - HTTP Request Verbs
+  - Specific pattern of Routes/Endpoint URLs
+- **HTTP Request Verbs:** GET, POST, PUT, PATCH, DELETE
+![restful methods](https://codeopinion.com/wp-content/uploads/2021/03/c.png)
+
+- **Routes/Endpoint URLS:**
+
+| **HTTP verbs** | **/articles**               | **/articles/Hamilton**             |
+|----------------|-----------------------------|------------------------------------|
+| GET            | Fetch **all** the articles  | Fetch **the** article on Hamilton  |
+| POST           | Create **one** new article  |                  -                 |
+| PUT            |              -              | Update **the** article on Hamilton |
+| PATCH          |              -              | Update **the** article on Hamilton |
+| DELETE         | Delete **all** the articles | Delete **the** article on Hamilton |
+
+
+## RESTful Services
+- REST -> **Re** presentational **S** tate **T** ransfer
+- REST defines a set of conventions for creating HTTP services:
+	I. POST: To create a resource
+	II. PUT: To update it
+	III. GET: To read it
+	IV. DELETE: To delete it
+	
+## Express JS Framework
+- Nodejs Framework
+- fast and lightweight Framework for building web application
+```
+npm init
+npm install express
+```
+
+## Building a Web Server Using Express
+```js
+const express = require('express');
+const app =  express();
+
+app.get()
+app.post()
+app.put()
+app.delete()
+
+app.listen(3000,()=> console.log("PORT 3000"))
+```
+## Nodemon
+- Nodemon -> Node Monitor
+- Restarts server whenever code changes
+```
+npm i -g nodemon
+nodemon index.js
+```
+## Environment Variables
+- To save configurations of the environment
+- To set Port or API Key etc.
+index.js
+```js
+const port = process.env.PORT || 3000
+app.listen(port,()=> console.log(`PORT ${port}`))
+```
+- Setting an environment variable
+```
+set PORT=8000
+```
+## Route Parameters
+app.js
+```js
+app.get('/api/courses/:id', (req, res) => {
+        res.send(req.params.id);
+});
+```
+- To get route params --> req.params
+```js
+app.get('/api/location/:lat/:lon', (req, res) => {
+        res.send(req.params.lat);
+        res.send(req.params.lon);
+});
+```
+- To get query params --> req.query
+```js
+app.get('/api/location/?tab=cities', (req, res) => {
+        res.send(req.query);
+});
+```
+## Handling HTTP Get Requests
+index.js
+```js
+const courses =[
+	{id:1,name:"abc"},
+	{id:2,name:"def"}
+];
+
+//To all the courses
+app.get('/api/courses', (req, res) => {
+        res.send(courses);
+});
+
+//To get a specific course by its id
+app.get('/api/courses/:id', (req, res) => {
+        const course = courses.find(c => c.id === parseInt(req.params.id));
+        if (!course) res.status(404).send(`course ${req.params.id} not found`);
+        res.send(course);
+});
+```
+
+
+
+## Handling HTTP Post Requests
+- Creating an object
+index.js
+```js
+app.use(express.json()); //Middleware to handle json body 
+
+app.post('/api/courses', (req, res) => {
+        const course = {
+            id: courses.length + 1,
+            name: req.body.name //uses express.json()
+        };
+        courses.push(course);
+        res.send(course);
+});
+```
+
+## Input Validation
+- npm package JOI
+```
+npm i JOI
+```
+index.js
+```js
+const Joi = require('joi');
+
+app.use(express.json()); //Middleware to handle json body 
+
+app.post('/api/courses', (req, res) => {
+		const schema = {
+        name: Joi.string().min(3).required()
+		};
+		const result = Joi.validate(req.body, schema);
+
+        // 400 bad request
+        if (result.error) {
+	        return res.status(400).send(result.error.details[0].message);
+		}      
+
+        const course = {
+            id: courses.length + 1,
+            name: req.body.name //uses express.json()
+        };
+        courses.push(course);
+        res.send(course);
+});
+```
+
+## Handling HTTP Put Requests
+- Updating an object
+index.js
+```js
+ app.put('/api/courses/:id', (req, res) => {
+	const course = courses.find(c => c.id === parseInt(req.params.id));
+	
+	//If not existing, return 404
+	if (!course) {
+		return res.status(404).send(`course ${req.params.id} not found`);
+	}
+
+	// validate and if invalid return 400 bad req
+	//const result = validateCourse(req.body)
+	const { error } = validateCourse(req.body) //destructuring
+	
+// 400 bad request
+	if (error) {
+		return res.status(400).send(result.error.details[0].message);
+	}
+// else update and return updated course
+	course.name = req.body.name;
+	res.send(course);	  
+});
+
+function validateCourse(course) {
+const schema = {
+	name: Joi.string().min(3).required()
+};
+return Joi.validate(course, schema);
+}
+``` 
+
+## Handling HTTP Delete Requests
+index.js
+```js
+app.delete('/api/courses/:id', (req, res) => {
+        // look up the course 
+        // if not exist, return 404
+	const course = courses.find(c => c.id === parseInt(req.params.id));
+	if (!course) return {
+		res.status(404).send(`course${req.params.id} not found`);
+	}
+
+        // delete and return course which was deleted
+	const index = courses.indexOf(course);
+	courses.splice(index, 1);
+	res.send(course);
+});
+```
+
