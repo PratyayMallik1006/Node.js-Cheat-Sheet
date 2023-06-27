@@ -653,3 +653,105 @@ app.use('/api/instructors', instructors);
 
 app.listen(3000, () => console.log("3000"))
 ```
+# Asynchronous JavaScript
+## Synchronous vs Asynchronous Code
+- **Synchronous:** Code executes one line (block) at a time
+-  **Asynchronous:** If a block takes time, blocks ahead of it gets executed without waiting for it
+## Patterns for Dealing With Asynchronous Code
+    1) Callbacks
+    2) Promises
+    3) Async/Await
+
+## Callbacks
+```js
+console.log('Before');
+getUser(1, (user) => {
+        console.log('User:', user);
+        //waits until it gets user
+});
+console.log('After');
+
+
+function getUser(id, callback) {
+	setTimeout(() => {
+		console.log('Reading user from db...');
+		callback({ id: id, gitHubUsername: 'Lewis' });
+	}, 2000); // 2 seconds wait
+}
+```
+## Callback Hell
+- Callbacks inside callbacks (also  called Christmas tree problem)
+- Named functions
+- Replace anonymous function with named function
+```js
+getUser(1, displayUser);
+
+function displayUser(user) {
+    console.log('User:', user);
+    getRepositories(user, displayRepositories);
+}
+
+function displayRepositories(repos) {
+    console.log(`Repo's: ${repos}`);
+    getCommits(repos[1], displayCommits);
+}
+
+function displayCommits(commits) {
+    console.log('Commits', commits);
+}
+```
+## Promises
+
+- It is an object which holds eventual result of async operation
+- In 3 states: 
+	- pending state, fulfilled or resolved, rejected state
+```js
+const p = new Promise((resolve, reject) => {
+    setTimeout(() => {
+		resolve(1); // pending => resolved, sets result = 1
+        // reject(new Error('something went wrong')); // pending => rejected
+    }, 2000);
+});
+
+//consuming the promise
+p.then((result) => {
+    console.log(`Result: ${result}`); // Result: 1
+}).catch((error) => {
+    console.log(`Error: ${error.message}`);
+});
+```
+- Chained Promises
+```js
+getUser(1)
+	.then((user) => getRepositories(user.gitHubUsername))
+	.then((repos) => getCommits(repos[0]))
+	.then((commits) => console.log('Commits', commits));
+```
+
+
+## Creating Settled Promises
+- Already resolved or rejected promises
+```js
+const p = Promise.resolve({ id: 1});
+    p.then(user => { console.log(user)});
+```
+
+## Running Parallel Promises
+
+- Returns promises of both
+```js
+Promise.all([p1, p2])   
+       .then((result) => {
+            console.log(result);
+       });
+```
+- Returns only one promise which happens early
+```js
+Promise.race([p1, p2])
+    .then((result) => {
+        console.log(result);
+    });
+```
+## Async and Await
+- Syntactical sugar over promises
+- Write async code using sync code
