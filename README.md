@@ -755,3 +755,84 @@ Promise.race([p1, p2])
 ## Async and Await
 - Syntactical sugar over promises
 - Write async code using sync code
+# CRUD Using Mongoose and MongoDB
+- MongoDB is an open-source document database. It stores data in flexible, JSONlike documents. 
+- In relational databases we have **tables** and **rows**, in MongoDB we have **collections** and **documents.** A document can contain sub-documents. 
+- We don’t have relationships between documents. 
+## To connect to MongoDB: 
+```js
+const mongoose = require(‘mongoose’);
+
+//Database name => playground
+mongoose.connect(‘mongodb://localhost/playground')
+	.then(() => console.log(‘Connected…’)) 
+	.catch(err => console.error(‘Connection failed…’)); 
+```
+## To store objects in MongoDB
+- We need to define a Mongoose **schema** first. 
+- The schema defines the shape of documents in MongoDB.
+```js
+courseSchema = new mongoose.Schema({ 
+	name: String, 
+	price: Number
+	});
+```
+- We can use a SchemaType object to provide additional details: 
+```js
+const courseSchema = new mongoose.Schema({ 
+	isPublished: { type: Boolean, default: false } 
+}); 
+```
+- Supported types are: **String, Number, Date, Buffer** (for storing binary data), **Boolean** and **ObjectID.** 
+
+## Creating a Model 
+- Once we have a schema, we need to compile it into a model. A model is like a class. It’s a blueprint for creating objects
+- In collection(table) **Course**
+```js
+const Course = mongoose.model(‘Course’, courseSchema);
+const course = new Course({
+	name:"Node Js",
+	prine:10
+	
+})
+```
+## CRUD Operations
+### Saving a document 
+```js
+let course = new Course({ name: ‘…’ }); 
+course = await course.save();
+```
+### Querying documents 
+```js
+const courses = await Course 
+	.find({ author: ‘Lewis’, isPublished: true }) 
+	.skip(10) 
+	.limit(10) 
+	.sort({ name: 1, price: -1 }) 
+	.select({ name: 1, price: 1 });
+```
+### Updating a document (query first) 
+```js
+const course = await Course.findById(id); 
+if (!course) return; 
+course.set({ name: ‘…’ }); 
+course.save(); 
+```
+### Updating a Document (query first) 
+```js
+const result = await Course.update({ _id: id }, { 
+	$set: { name: ‘…’ } 
+});
+```
+### Updating a Document (update first) and return it 
+```js
+const result = await Course.findByIdAndUpdate({ _id: id }, { 
+	$set: { name: ‘…’ } 
+}, { new: true }); 
+```
+### Removing a document 
+```js
+const result = await Course.deleteOne({ _id: id }); 
+const result = await Course.deleteMany({ _id: id }); 
+const course = await Course.findByIdAndRemove(id);
+```
