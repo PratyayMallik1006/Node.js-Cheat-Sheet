@@ -755,6 +755,7 @@ Promise.race([p1, p2])
 ## Async and Await
 - Syntactical sugar over promises
 - Write async code using sync code
+
 # CRUD Using Mongoose and MongoDB
 - MongoDB is an open-source document database. It stores data in flexible, JSONlike documents. 
 - In relational databases we have **tables** and **rows**, in MongoDB we have **collections** and **documents.** A document can contain sub-documents. 
@@ -835,4 +836,50 @@ const result = await Course.findByIdAndUpdate({ _id: id }, {
 const result = await Course.deleteOne({ _id: id }); 
 const result = await Course.deleteMany({ _id: id }); 
 const course = await Course.findByIdAndRemove(id);
+```
+# Mongo - Data Validation
+ - When defining a schema, you can set the type of a property to a SchemaType object. You use this object to define the validation requirements for the given property.
+ -  Adding validation 
+```js
+const courseSchema = new mongoose.Schema({ 
+	name: { type: String, required: true } 
+})
+```
+ - Validation logic is executed by Mongoose prior to saving a document to the database. You can also trigger it manually by calling the **validate()** method. 
+## Built-in validators: 
+- **Strings:** minlength, maxlength, match, enum 
+- **Numbers:** min, max 
+- **Dates:** min, max 
+- **All types:** required 
+## Custom validation
+```js
+tags: { 
+	type: Array, 
+	validate: { 
+		validator: function(v) { return v && v.length > 0; },
+		message: ‘A course should have at least 1 tag.’ 
+		} 
+	}
+```
+## Async Validators
+- If you need to talk to a database or a remote service to perform the validation, you need to create an async validator: 
+```js
+validate: { 
+	isAsync: true 
+	validator: function(v, callback) { 
+		// Do the validation, when the result is ready, call the callback 
+		callback(isValid); 
+	} 
+} 
+```
+## SchemaType Options
+- Other useful SchemaType properties: 
+	- **Strings:** lowercase, uppercase, trim 
+	- **All types:** get, set (to define a custom getter/setter)
+```js
+price: { 
+	type: Number, 
+	get: v => Math.round(v), 
+	set: v => Math.round(v)
+}
 ```
